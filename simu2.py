@@ -142,17 +142,15 @@ print(
 )
 
 # 4. ¿Se necesita un nuevo cajero? (Umbral: Wq > 5 min o ρ > 0.85)
+# Utilización ρ = λ / (c·μ) = λ·E[S] / c: fracción de la jornada que cada
+# cajero pasa atendiendo. Se estima como tiempo de servicio total / (c · T).
 overall_wait = df_base["wait_time"].mean()
-overall_service = df_base["service_time"].mean()
-rho = (
-    overall_wait / (overall_wait + overall_service)
-    if (overall_wait + overall_service) > 0
-    else 0
-)
+ocupacion = df_base.groupby(["replica", "teller_id"])["service_time"].sum() / SIM_TIME
+rho = ocupacion.mean()
 necesario = overall_wait > 5.0 or rho > 0.85
 print(f"\n⏱️ Evaluación de nuevo cajero:")
 print(f"   - Espera promedio global: {overall_wait:.2f} min")
-print(f"   - Utilización estimada (ρ): {rho:.2%}")
+print(f"   - Utilización de los cajeros (ρ = λ/cμ): {rho:.2%}")
 print(
     f"   👉 {'SÍ se recomienda agregar cajeros.' if necesario else 'NO es necesario agregar cajeros.'}"
 )
